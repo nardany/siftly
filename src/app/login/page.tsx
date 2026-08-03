@@ -44,7 +44,7 @@ export default function Login() {
     }
   } catch (error) {
     console.error("Խնդիր կապի հետ:", error);
-    alert("Ինչ-որ բան սխալ գնաց։");
+    alert("Խնդիր կապի հետ");
   } finally {
     setIsLoading(false);
   }

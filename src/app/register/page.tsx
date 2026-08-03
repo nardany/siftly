@@ -41,7 +41,7 @@ export default function Register() {
     }
   } catch (error) {
     console.error("Խնդիր կապի հետ:", error);
-    alert("Ինչ-որ բան սխալ գնաց։ Ստուգիր ինտերնետդ։");
+    alert("Խնդիր կապի հետ");
   } finally {
     setIsLoading(false);
   }

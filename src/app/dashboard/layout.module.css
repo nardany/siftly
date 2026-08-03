@@ -1,0 +1,48 @@
+.dashboardContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 40px;
+  padding-left: 12px;
+}
+
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navItem {
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.navItem:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
