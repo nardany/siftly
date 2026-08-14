@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import bcrypt from "bcrypt";
 export async function POST(request: Request) {
+  if (process.env.DISABLE_REGISTRATION === "true") {
+    return NextResponse.json(
+      { message: "Ռեգիստրացիան փակ է այս սերվերում (Registration is disabled)." },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { fullName, companyName, email, password } = body;

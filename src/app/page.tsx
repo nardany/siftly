@@ -1,9 +1,7 @@
+import { redirect } from "next/navigation";
+import { getUserFromToken } from "@/lib/auth";
 
-
-export default function Home() {
-  return (
-   <div>
-    Siftly App
-   </div>
-  );
+export default async function Home() {
+  const user = await getUserFromToken();
+  redirect(user ? "/dashboard" : "/login");
 }

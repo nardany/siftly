@@ -53,7 +53,7 @@ export default function Login() {
   return (
     <div className={style.container}>
       <div className={style.authCard}>
-        <div className={style.logoBox}></div>
+        <img src="/siftlylogoblack.png" alt="Siftly" className={style.logoImage} />
         <h2 className={style.title}>Siftly</h2>
 
         <form onSubmit={handleLogin} style={{ width: "100%" }}>

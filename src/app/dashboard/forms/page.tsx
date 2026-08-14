@@ -1,7 +1,9 @@
 import Link from "next/link";
 import style from "./forms.module.css";
-import prisma from "../../../lib/prisma";
-import { getUserFromToken } from "../../../lib/auth";
+import prisma from "@/lib/prisma";
+import { getUserFromToken } from "@/lib/auth";
+import DeleteButton from "./DeleteButton";
+import CopyLinkButton from "./CopyLinkButton";
 
 export default async function MyFormsPage() {
   const user = await getUserFromToken();
@@ -34,10 +36,21 @@ export default async function MyFormsPage() {
               <p className={style.cardStat}>Դիմորդներ: {form._count.candidates}</p>
 
               <div className={style.cardActions}>
-                <Link href={`/dashboard/forms/${form.id}/edit`} className={style.editBtn} style={{ textAlign: "center", textDecoration: "none" }}>
-                  Փոփոխել
+                <CopyLinkButton slug={form.slug} />
+                <Link href={`/dashboard/forms/${form.id}/candidates`} className={style.editBtn}>
+                  👥 Դիմորդներ ({form._count.candidates})
                 </Link>
-                <button className={style.deleteBtn}>Ջնջել</button>
+                {!form.slug.startsWith("gf-") && (
+                  <Link href={`/dashboard/forms/${form.id}/edit`} className={style.editBtn} style={{ textAlign: "center", textDecoration: "none" }}>
+                    Փոփոխել
+                  </Link>
+                )}
+                {form.slug.startsWith("gf-") && (
+                  <span className={style.editBtn} style={{ textAlign: "center", textDecoration: "none",}}>
+                    Google Forms
+                  </span>
+                )}
+                <DeleteButton id={form.id} />
               </div>
             </div>
           ))}

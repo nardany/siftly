@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   if (!userPayload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { title, themeColor, questions } = body;
+  const { title, themeColor, questions, jobDescription, aiEvaluationMode, inviteTemplate, rejectTemplate } = body;
 
   const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
   const slug = `${baseSlug || "form"}-${Math.random().toString(36).substring(2, 7)}`;
@@ -18,6 +18,10 @@ export async function POST(request: Request) {
         title: title,
         slug: slug,
         themeColor: themeColor,
+        jobDescription: jobDescription,
+        aiEvaluationMode: aiEvaluationMode || "NORMAL",
+        inviteTemplate: inviteTemplate || null,
+        rejectTemplate: rejectTemplate || null,
         userId: userPayload.id,
         questions: {
           create: questions.map((q: any) => ({

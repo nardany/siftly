@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import style from "./builder.module.css";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import style from "../../create/builder.module.css";
 
 type Question = {
   id: string;
@@ -9,14 +10,46 @@ type Question = {
   options?: string[];
 };
 
-export default function FormBuilder() {
-  const [title, setTitle] = useState("Անանուն Հարցաշար");
+export default function EditFormBuilder() {
+  const params = useParams();
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
   const [themeColor, setThemeColor] = useState("#0f172a");
   const [jobDescription, setJobDescription] = useState("");
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [aiEvaluationMode, setAiEvaluationMode] = useState("NORMAL");
-  const [questions, setQuestions] = useState<Question[]>([
-    { id: "1", text: "", type: "TEXT" }
-  ]);
+
+
+  useEffect(() => {
+    fetch(`/api/forms/${params.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert("Հարցաշարը չի գտնվել");
+          router.push("/dashboard/forms");
+          return;
+        }
+        setTitle(data.title);
+        setThemeColor(data.themeColor || "#0f172a");
+        setJobDescription(data.jobDescription || "");
+
+        const loadedQuestions = data.questions.map((q: any) => ({
+          id: q.id,
+          text: q.text,
+          type: q.type,
+          options: q.options ? JSON.parse(q.options) : undefined
+        }));
+
+        setQuestions(loadedQuestions);
+        setLoading(false);
+      })
+      .catch(() => {
+        alert("Սխալ տվյալներ կարդալիս");
+        setLoading(false);
+      });
+  }, [params.id, router]);
 
   const addQuestion = () => {
     const newId = Math.random().toString(36).substring(2, 9);
@@ -56,7 +89,7 @@ export default function FormBuilder() {
     }));
   };
 
-  const handleSave = async () => {
+  const handleUpdate = async () => {
     if (!title.trim()) {
       return alert("Խնդրում ենք գրել հարցաշարի վերնագիրը");
     }
@@ -69,20 +102,24 @@ export default function FormBuilder() {
         : null
     }));
 
-    const res = await fetch("/api/forms", {
-      method: "POST",
+    const res = await fetch(`/api/forms/${params.id}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, themeColor, jobDescription, questions: formattedQuestions, aiEvaluationMode })
     });
 
-    const data = await res.json();
-
     if (res.ok) {
-      alert("Հարցաշարը հաջողությամբ պահպանվեց բազայում!\nՁեր հղումը՝ /apply/" + data.slug);
+      alert("Փոփոխությունները հաջողությամբ պահպանվեցին!");
+      router.push("/dashboard/forms");
     } else {
+      const data = await res.json();
       alert("Սխալ: " + data.error);
     }
   };
+
+  if (loading) {
+    return <div style={{ padding: "40px", textAlign: "center", fontSize: "18px" }}>Բեռնվում է հարցաշարը...</div>;
+  }
 
   return (
     <div className={style.container}>
@@ -103,7 +140,6 @@ export default function FormBuilder() {
             style={{ border: "none", width: "30px", height: "30px", cursor: "pointer" }}
           />
         </div>
-
         <textarea
           className={style.jobDescriptionInput}
           value={jobDescription}
@@ -164,7 +200,6 @@ export default function FormBuilder() {
                     border: "2px solid #cbd5e1",
                     borderRadius: q.type === "SINGLE_CHOICE" ? "50%" : "4px"
                   }}></div>
-
                   <input
                     type="text"
                     value={opt}
@@ -186,8 +221,8 @@ export default function FormBuilder() {
         <button onClick={addQuestion} className={style.addBtn}>
           + Ավելացնել Հարց
         </button>
-        <button onClick={handleSave} className={style.saveBtn}>
-          Պահպանել Հարցաշարը
+        <button onClick={handleUpdate} className={style.saveBtn}>
+          Թարմացնել Հարցաշարը
         </button>
       </div>
     </div>

@@ -22,18 +22,25 @@ model User {
   forms       Form[]
   companyLogo        String?
   companyDescription String?
+  googleToken  GoogleToken?
 }
 
 model Form {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  themeColor  String   @default("#000000")
-  createdAt   DateTime @default(now())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  questions   Question[]
-  candidates  Candidate[]
+  id                     String   @id @default(cuid())
+  title                  String
+  slug                   String   @unique
+  themeColor             String   @default("#000000")
+  createdAt              DateTime @default(now())
+  jobDescription         String?
+  aiEvaluationMode       String   @default("NORMAL")
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id])
+  questions              Question[]
+  candidates             Candidate[]
+  googleFormId           String?
+  lastGoogleResponseId   String?
+  inviteTemplate         String?
+  rejectTemplate         String?
 }
 
 
@@ -48,16 +55,22 @@ model Question {
 }
 
 model Candidate {
-  id          String   @id @default(cuid())
-  firstName   String
-  lastName    String
-  email       String
-  aiScore     Int?
-  aiSummary   String?
-  createdAt   DateTime @default(now())
-  formId      String
-  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
-  answers     Answer[]
+  id               String   @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String?
+  aiScore          Int?
+  aiSummary        String?
+  status           String   @default("PENDING")
+  trustScore       Int      @default(100)
+  cheatLogs        String?
+  timeSpent        Int?
+  createdAt        DateTime @default(now())
+  formId           String
+  form             Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  answers          Answer[]
+  googleResponseId String?  
 }
 
 model Answer {
@@ -67,4 +80,13 @@ model Answer {
   candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   questionId  String
   question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model GoogleToken {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
