@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import style from "./candidates.module.css";
 import OutreachModal from "./OutreachModal";
@@ -32,6 +32,27 @@ export default function CandidateTableClient({
   const [candidates, setCandidates] = useState<CandidateItem[]>(initialCandidates);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateItem | null>(null);
   const [outreachType, setOutreachType] = useState<"INVITE" | "REJECT">("INVITE");
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
+  const filteredCandidates = useMemo(() => {
+    if (!searchTerm.trim()) return candidates;
+    const term = searchTerm.toLowerCase();
+    return candidates.filter(
+      (c) =>
+        c.firstName.toLowerCase().includes(term) ||
+        c.lastName.toLowerCase().includes(term) ||
+        (c.email && c.email.toLowerCase().includes(term))
+    );
+  }, [candidates, searchTerm]);
+
+  const totalPages = Math.ceil(filteredCandidates.length / pageSize) || 1;
+  const paginatedCandidates = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredCandidates.slice(start, start + pageSize);
+  }, [filteredCandidates, currentPage]);
 
   const handleOpenModal = (candidate: CandidateItem, type: "INVITE" | "REJECT") => {
     setSelectedCandidate(candidate);
@@ -71,7 +92,25 @@ export default function CandidateTableClient({
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          placeholder="🔍 Որոնել (Անուն, Էլ. փոստ)..."
+          style={{
+            padding: "10px 16px",
+            borderRadius: "8px",
+            border: "1px solid #cbd5e1",
+            fontSize: "14px",
+            width: "280px",
+            outline: "none",
+          }}
+        />
+
         <button
           onClick={handleExportCSV}
           style={{
@@ -106,14 +145,14 @@ export default function CandidateTableClient({
             </tr>
           </thead>
           <tbody>
-            {candidates.length === 0 ? (
+            {paginatedCandidates.length === 0 ? (
               <tr>
                 <td colSpan={6} className={style.emptyState}>
                   Դեռ ոչ մի դիմորդ չկա այս հաստիքի համար:
                 </td>
               </tr>
             ) : (
-              candidates.map((candidate) => {
+              paginatedCandidates.map((candidate) => {
                 const cScore = candidate.aiScore ?? 0;
                 const isHigh = cScore >= 80;
                 const isMid = cScore >= 50 && cScore < 80;
@@ -207,6 +246,42 @@ export default function CandidateTableClient({
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "20px" }}>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              cursor: currentPage === 1 ? "not-allowed" : "pointer",
+              opacity: currentPage === 1 ? 0.5 : 1,
+            }}
+          >
+            ← Նախորդ
+          </button>
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "#475569" }}>
+            Էջ {currentPage} / {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+              opacity: currentPage === totalPages ? 0.5 : 1,
+            }}
+          >
+            Հաջորդ →
+          </button>
+        </div>
+      )}
 
       {selectedCandidate && (
         <OutreachModal

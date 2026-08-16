@@ -124,9 +124,11 @@ ${form.jobDescription || "Ընդհանուր մասնագիտական հմտու
       aiSummary = "AI գնահատումը ձախողվեց: Խնդիր կապի կամ բանալիի հետ:";
     }
 
+    let resumeUrl: string | null = null;
     const cleanAnswers = { ...answers };
     Object.keys(cleanAnswers).forEach((key) => {
       if (typeof cleanAnswers[key] === "string" && cleanAnswers[key].startsWith("data:application/pdf;base64,")) {
+        resumeUrl = cleanAnswers[key];
         cleanAnswers[key] = "[PDF CV Attached]";
       }
     });
@@ -143,6 +145,7 @@ ${form.jobDescription || "Ընդհանուր մասնագիտական հմտու
         timeSpent,
         aiScore,
         aiSummary,
+        resumeUrl,
         answers: {
           create: Object.entries(cleanAnswers).map(([questionId, value]) => ({
             questionId,

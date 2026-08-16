@@ -71,6 +71,7 @@ model Candidate {
   form             Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
   answers          Answer[]
   googleResponseId String?  
+  resumeUrl        String?
 }
 
 model Answer {

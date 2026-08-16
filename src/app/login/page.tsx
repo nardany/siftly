@@ -82,7 +82,7 @@ export default function Login() {
               required
             />
           </div>
-          <span className={style.forgotPassword}>Forgot Password?</span>
+          <Link href="/forgot-password" className={style.forgotPassword}>Forgot Password?</Link>
           <button type="submit" className={style.submitBtn} disabled={isLoading}>
             {isLoading ? "Signing In..." : "Sign In"}
           </button>

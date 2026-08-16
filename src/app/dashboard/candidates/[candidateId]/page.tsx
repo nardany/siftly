@@ -75,6 +75,32 @@ export default async function CandidateReportPage({ params }: { params: Promise<
             <div className={style.sideCardTitle}>💬 AI Ամփոփում</div>
             <p className={style.summaryText}>{candidate.aiSummary}</p>
           </div>
+          {candidate.resumeUrl && (
+            <div className={style.sideCard}>
+              <div className={style.sideCardTitle}>📄 Կցված Ռեզյումե (CV)</div>
+              <a
+                href={candidate.resumeUrl}
+                download={`${candidate.firstName}_${candidate.lastName}_CV.pdf`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "inline-block",
+                  width: "100%",
+                  textAlign: "center",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 12px rgba(79,70,229,0.3)",
+                }}
+              >
+                📥 Ներբեռնել CV (PDF)
+              </a>
+            </div>
+          )}
           {cheatLogs.length > 0 && (
             <div className={`${style.sideCard} ${style.dangerCard}`}>
               <div className={style.sideCardTitle}>⚠️ Anti-Cheat Լոգեր</div>
