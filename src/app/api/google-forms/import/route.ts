@@ -294,12 +294,20 @@ ${qaText}${githubTextCombined}
 ՎԵՐԱԴԱՐՁՐՈՒ ՄԻԱՅՆ JSON (առանց Markdown-ի):
 {"score": 0-100, "summary": "(Մանրամասն, բովանդակալից և երկար HR վերլուծություն 4-6 նախադասությամբ)"}`;
       const contents: any[] = [promptText, ...pdfInlineParts];
-      const result = await model.generateContent(contents);
+      let result;
+      try {
+        result = await model.generateContent(contents);
+      } catch (pdfErr) {
+        console.warn("Retrying Gemini evaluation without inline PDF parts:", pdfErr);
+        result = await model.generateContent([promptText]);
+      }
+
       const parsed = JSON.parse(result.response.text());
       aiScore = parsed.score ?? 0;
       aiSummary = parsed.summary ?? "";
-    } catch {
-      aiSummary = "AI գնահատումը ձախողվեց";
+    } catch (err: any) {
+      console.error("Gemini AI Final Error:", err);
+      aiSummary = "AI գնահատումը ձախողվեց: Խնդրում ենք ստուգել GEMINI_API_KEY-ը:";
     }
 
     if (forceReevaluate && response.responseId) {

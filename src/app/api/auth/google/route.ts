@@ -10,11 +10,12 @@ const oauth2Client = new google.auth.OAuth2(
 export async function GET() {
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    prompt: "select_account",
+    prompt: "consent",
     scope: [
       "https://www.googleapis.com/auth/forms.responses.readonly",
       "https://www.googleapis.com/auth/forms.body.readonly",
       "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/drive.file",
     ],
   });
   return NextResponse.redirect(url);
