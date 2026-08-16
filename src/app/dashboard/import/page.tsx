@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import style from "./import.module.css";
 
 export default function ImportPage() {
@@ -9,6 +9,18 @@ export default function ImportPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/google/status")
+      .then((res) => res.json())
+      .then((data) => setIsConnected(data.isConnected))
+      .catch(() => setIsConnected(false));
+  }, []);
+
+  const handleConnectGoogle = () => {
+    window.location.href = "/api/auth/google";
+  };
 
   const handleImport = async () => {
     if (!formUrl) {
@@ -43,6 +55,48 @@ export default function ImportPage() {
       <p className={style.subtitle}>
         Կպցրու Google Forms-ի հղումը, և Siftly-ն ավտոմատ կներմուծի հարցաշարն ու դիմորդներին AI գնահատմամբ:
       </p>
+
+      {/* Google Connection Status Banner */}
+      <div
+        className={style.card}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          backgroundColor: isConnected ? "#f0fdf4" : "#fefce8",
+          borderColor: isConnected ? "#86efac" : "#fef08a",
+        }}
+      >
+        <div>
+          <h3 style={{ margin: 0, fontSize: "16px", color: isConnected ? "#166534" : "#854d0e" }}>
+            {isConnected === null
+              ? "Ստուգվում է Google հաշվի կապը..."
+              : isConnected
+              ? "🟢 Google հաշիվը կապված է Siftly-ին"
+              : "⚠️ Google հաշիվը դեռ կապված չէ"}
+          </h3>
+          <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}>
+            Google Forms-ից տվյալներ կարդալու համար անհրաժեշտ է 1 անգամ կապել Google հաշիվը:
+          </p>
+        </div>
+
+        <button
+          onClick={handleConnectGoogle}
+          style={{
+            padding: "10px 18px",
+            borderRadius: "8px",
+            border: "none",
+            background: isConnected ? "#15803d" : "linear-gradient(135deg, #4285f4, #1a73e8)",
+            color: "#ffffff",
+            fontWeight: 700,
+            fontSize: "13px",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          {isConnected ? "🔄 Կրկին Կապել Google" : "🔗 Connect with Google"}
+        </button>
+      </div>
 
       <div className={style.card}>
         <div className={style.stepBadge}>Քայլ 1</div>
@@ -84,7 +138,29 @@ export default function ImportPage() {
         {isLoading ? "Ներմուծվում և գնահատվում է..." : "🚀 Ներմուծել և Գնահատել AI-ով"}
       </button>
 
-      {error && <div className={style.errorBox}>{error}</div>}
+      {error && (
+        <div className={style.errorBox}>
+          <div>{error}</div>
+          {!isConnected && (
+            <button
+              onClick={handleConnectGoogle}
+              style={{
+                marginTop: "8px",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "none",
+                background: "#4285f4",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "12px",
+                cursor: "pointer",
+              }}
+            >
+              🔗 Connect with Google Now
+            </button>
+          )}
+        </div>
+      )}
 
       {result && (
         <div className={style.successBox}>
