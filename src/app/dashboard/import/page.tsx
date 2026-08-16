@@ -48,13 +48,13 @@ export default function ImportPage() {
         <div className={style.stepBadge}>Քայլ 1</div>
         <h2 className={style.cardTitle}>Google Forms Հղումը (URL)</h2>
         <p className={style.cardDesc}>
-          Պատճենիր հղումը Google Forms-ի էջից (օրինակ՝ https://docs.google.com/forms/d/e/.../viewform կամ /edit):
+          Պատճենիր հղումը Google Forms-ի Edit էջից (browser-ի tab-ի հղումը, որն ավարտվում է /edit-ով, օրինակ՝ https://docs.google.com/forms/d/.../edit):
         </p>
         <input
           type="url"
           value={formUrl}
           onChange={(e) => setFormUrl(e.target.value)}
-          placeholder="https://docs.google.com/forms/d/..."
+          placeholder="https://docs.google.com/forms/d/YOUR_FORM_ID/edit"
           className={style.input}
         />
       </div>
