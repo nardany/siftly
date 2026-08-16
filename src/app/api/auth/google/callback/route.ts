@@ -20,11 +20,13 @@ export async function GET(req: Request) {
 
   const { tokens } = await oauth2Client.getToken(code);
 
+  const existingToken = await prisma.googleToken.findUnique({ where: { userId: user.id } });
+
   await prisma.googleToken.upsert({
     where: { userId: user.id },
     update: {
       accessToken: tokens.access_token!,
-      refreshToken: tokens.refresh_token || "",
+      refreshToken: tokens.refresh_token || existingToken?.refreshToken || "",
       expiresAt: new Date(tokens.expiry_date || Date.now() + 3600000),
     },
     create: {

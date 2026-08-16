@@ -13,6 +13,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Status is required" }, { status: 400 });
   }
 
+  const candidate = await prisma.candidate.findUnique({
+    where: { id },
+    include: { form: true },
+  });
+
+  if (!candidate || candidate.form.userId !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const updatedCandidate = await prisma.candidate.update({
     where: { id },
     data: { status },

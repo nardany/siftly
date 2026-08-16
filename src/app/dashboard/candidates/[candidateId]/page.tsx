@@ -24,8 +24,8 @@ export default async function CandidateReportPage({ params }: { params: Promise<
     return redirect("/dashboard/forms");
   }
 
-  const cheatLogs: string[] = Array.isArray(candidate.cheatLogs)
-    ? (candidate.cheatLogs as string[])
+  const cheatLogs: string[] = candidate.cheatLogs
+    ? candidate.cheatLogs.split(" | ").filter(Boolean)
     : [];
 
   const aiScore = candidate.aiScore ?? 0;
