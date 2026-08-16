@@ -193,6 +193,8 @@ export async function POST(req: Request) {
     const pdfInlineParts: any[] = [];
     let githubTextCombined = "";
 
+    let googleFormsResumeUrl: string | null = null;
+
     for (let idx = 0; idx < rawQuestions.length; idx++) {
       const googleItem = rawQuestions[idx];
       const qText = googleItem.title || `Հարց ${idx + 1}`;
@@ -217,6 +219,7 @@ export async function POST(req: Request) {
                 { responseType: "arraybuffer" }
               );
               const base64Data = Buffer.from(fileRes.data as ArrayBuffer).toString("base64");
+              googleFormsResumeUrl = `data:application/pdf;base64,${base64Data}`;
               pdfInlineParts.push({
                 inlineData: {
                   data: base64Data,
@@ -317,6 +320,7 @@ ${qaText}${githubTextCombined}
         timeSpent: 0,
         aiScore,
         aiSummary,
+        resumeUrl: googleFormsResumeUrl,
         googleResponseId: response.responseId,
         answers: {
           create: Object.entries(answers).map(([questionId, value]) => ({
