@@ -22,7 +22,7 @@ export default function FormBuilder() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const addQuestion = () => {
-    const newId = Math.random().toString(36).substring(2, 9);
+    const newId = crypto.randomUUID();
     setQuestions([...questions, { id: newId, text: "", type: "TEXT" }]);
   };
 

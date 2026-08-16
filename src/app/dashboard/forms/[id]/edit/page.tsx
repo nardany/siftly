@@ -52,7 +52,7 @@ export default function EditFormBuilder() {
   }, [params.id, router]);
 
   const addQuestion = () => {
-    const newId = Math.random().toString(36).substring(2, 9);
+    const newId = crypto.randomUUID();
     setQuestions([...questions, { id: newId, text: "", type: "TEXT" }]);
   };
 
@@ -120,6 +120,7 @@ export default function EditFormBuilder() {
     }
 
     const formattedQuestions = questions.map(q => ({
+      id: q.id,
       text: q.text,
       type: q.type,
       options: (q.type === "SINGLE_CHOICE" || q.type === "MULTIPLE_CHOICE") && q.options
