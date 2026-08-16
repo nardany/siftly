@@ -20,7 +20,7 @@ export default function EditFormBuilder() {
   const [jobDescription, setJobDescription] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [aiEvaluationMode, setAiEvaluationMode] = useState("NORMAL");
-
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/forms/${params.id}`)
@@ -54,6 +54,31 @@ export default function EditFormBuilder() {
   const addQuestion = () => {
     const newId = Math.random().toString(36).substring(2, 9);
     setQuestions([...questions, { id: newId, text: "", type: "TEXT" }]);
+  };
+
+  const removeQuestion = (id: string) => {
+    if (questions.length === 1) {
+      return alert("Հարցաշարում պետք է լինի առնվազն 1 հարց:");
+    }
+    setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const newQuestions = [...questions];
+    const item = newQuestions.splice(draggedIndex, 1)[0];
+    newQuestions.splice(index, 0, item);
+    setDraggedIndex(index);
+    setQuestions(newQuestions);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const updateQuestion = (id: string, field: keyof Question, value: any) => {
@@ -161,7 +186,38 @@ export default function EditFormBuilder() {
       </div>
 
       {questions.map((q, index) => (
-        <div key={q.id} className={style.questionCard}>
+        <div
+          key={q.id}
+          className={style.questionCard}
+          draggable
+          onDragStart={() => handleDragStart(index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDragEnd={handleDragEnd}
+          style={{
+            opacity: draggedIndex === index ? 0.4 : 1,
+            cursor: "grab",
+            position: "relative",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b", cursor: "grab" }}>
+              ⋮⋮(Հարց {index + 1})
+            </span>
+            <button
+              onClick={() => removeQuestion(q.id)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ef4444",
+                fontWeight: 700,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              🗑️ Ջնջել
+            </button>
+          </div>
+
           <div className={style.questionRow}>
             <input
               type="text"

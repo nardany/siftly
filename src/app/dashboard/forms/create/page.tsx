@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import style from "./builder.module.css";
 
 type Question = {
@@ -10,6 +11,7 @@ type Question = {
 };
 
 export default function FormBuilder() {
+  const router = useRouter();
   const [title, setTitle] = useState("Անանուն Հարցաշար");
   const [themeColor, setThemeColor] = useState("#0f172a");
   const [jobDescription, setJobDescription] = useState("");
@@ -17,10 +19,36 @@ export default function FormBuilder() {
   const [questions, setQuestions] = useState<Question[]>([
     { id: "1", text: "", type: "TEXT" }
   ]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const addQuestion = () => {
     const newId = Math.random().toString(36).substring(2, 9);
     setQuestions([...questions, { id: newId, text: "", type: "TEXT" }]);
+  };
+
+  const removeQuestion = (id: string) => {
+    if (questions.length === 1) {
+      return alert("Հարցաշարում պետք է լինի առնվազն 1 հարց:");
+    }
+    setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    const newQuestions = [...questions];
+    const item = newQuestions.splice(draggedIndex, 1)[0];
+    newQuestions.splice(index, 0, item);
+    setDraggedIndex(index);
+    setQuestions(newQuestions);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const updateQuestion = (id: string, field: keyof Question, value: any) => {
@@ -79,6 +107,7 @@ export default function FormBuilder() {
 
     if (res.ok) {
       alert("Հարցաշարը հաջողությամբ պահպանվեց բազայում!\nՁեր հղումը՝ /apply/" + data.slug);
+      router.push("/dashboard/forms");
     } else {
       alert("Սխալ: " + data.error);
     }
@@ -125,7 +154,38 @@ export default function FormBuilder() {
       </div>
 
       {questions.map((q, index) => (
-        <div key={q.id} className={style.questionCard}>
+        <div
+          key={q.id}
+          className={style.questionCard}
+          draggable
+          onDragStart={() => handleDragStart(index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDragEnd={handleDragEnd}
+          style={{
+            opacity: draggedIndex === index ? 0.4 : 1,
+            cursor: "grab",
+            position: "relative",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b", cursor: "grab" }}>
+              ⋮⋮ (Հարց {index + 1})
+            </span>
+            <button
+              onClick={() => removeQuestion(q.id)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ef4444",
+                fontWeight: 700,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              🗑️ Ջնջել
+            </button>
+          </div>
+
           <div className={style.questionRow}>
             <input
               type="text"

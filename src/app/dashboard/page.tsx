@@ -51,7 +51,6 @@ export default async function DashboardOverview() {
       <div className={style.header}>
         <div>
           <h1 className={style.title}>Բարի գալուստ, {user.email} 👋</h1>
-          <p className={style.subtitle}>Ահա քո Siftly հարթակի ընդհանուր վիճակն այսօր</p>
         </div>
         <Link href="/dashboard/forms/create" className={style.createBtn}>
           + Նոր Հարցաշար
