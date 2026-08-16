@@ -1,28 +1,32 @@
 # Siftly — AI-Powered HR Candidate Screening Platform 🚀
 
-**Siftly** is a modern, open-source HR screening platform that automates candidate evaluation using **Google Gemini AI**. It supports both native custom forms and 1-click **Google Forms integration** with real-time candidate scoring, anti-cheating detection, and detailed analytical dashboards.
+**Siftly** is a modern, open-source HR screening platform that automates candidate evaluation using **Google Gemini AI**. It supports both native custom screening forms and 1-click **Google Forms integration** with real-time candidate scoring, anti-cheating detection, GitHub portfolio verification, 1-click Gmail outreach, and detailed analytical dashboards.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🤖 **AI-Powered Evaluation**: Automatically grades candidates from 0 to 100 with detailed AI summary reports tailored to job descriptions.
+- 🤖 **Multimodal Gemini AI Evaluation**: Automatically grades candidates from 0 to 100 with detailed, 4-6 sentence HR summary reports tailored to job descriptions.
+- 📄 **Native PDF CV / Resume Parsing**: Upload PDF resumes — Gemini AI reads and evaluates them natively alongside candidate answers.
+- 🐙 **GitHub Portfolio Verification**: AI automatically fetches candidate's public GitHub repositories, languages, and star counts to verify real coding experience.
 - 🔗 **Google Forms 1-Click Sync**: Import any Google Form with responses, auto-sync new applicants in real time, and match Q&A with 100% precision.
+- ✉️ **1-Click Smart Gmail Outreach**: Pre-fills personalized candidate invitation & rejection emails directly in Gmail with 1 click.
+- 🖐️ **Drag & Drop Form Builder**: Reorder screening questions easily with mouse or touch drag-and-drop.
+- 📥 **CSV / Excel Export**: Export all applicant data, scores, and AI summaries into a downloadable `.csv` file.
 - 📊 **HR Analytics Dashboard**: Interactive charts (Recharts) displaying candidate pass rates, average scores, and top candidate leaderboards.
 - 🛡️ **Anti-Cheating & Trust Score**: Tracks time spent, tab switching, and cheat logs for native candidate screening forms.
+- 🔒 **Single-Admin Security**: Option to disable public registrations (`DISABLE_REGISTRATION=true`) for self-hosted HR deployments.
 - 🎨 **Custom Branding**: Upload company logo, description, and custom theme colors for screening forms.
 - ⚡ **Strict / Lenient AI Modes**: Evaluate candidates based on seniority levels (Junior, Mid, Senior).
-- 🐙 **GitHub Portfolio Analysis**: AI automatically reads candidate's GitHub repositories and analyzes their real projects.
-- 📄 **CV / Resume Parsing**: Upload PDF resumes — Gemini AI reads and evaluates them alongside answers.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, React 19)
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Turbopack, React 19)
 - **Database**: PostgreSQL (via [Prisma ORM](https://www.prisma.io/))
 - **AI Engine**: Google Gemini AI (`@google/generative-ai`)
-- **Integrations**: Google Forms API & Google Drive API (`googleapis`)
+- **Integrations**: Google Forms API & Google Drive API (`googleapis`), GitHub REST API
 - **Styling**: Modern Vanilla CSS Modules (Glassmorphism & Dark/Light Accents)
 - **Charts**: [Recharts](https://recharts.org/)
 
@@ -36,7 +40,7 @@
 
 ### 2. Clone the Repository
 ```bash
-git clone https://github.com/your-username/siftly.git
+git clone https://github.com/nardany/siftly.git
 cd siftly
 npm install
 ```
@@ -55,6 +59,7 @@ Fill in your credentials:
 | `JWT_SECRET` | Any random secret string for session cookies | ✅ |
 | `GEMINI_API_KEY` | Google Gemini AI API key ([Get it here](https://aistudio.google.com/)) | ✅ |
 | `NEXT_PUBLIC_BASE_URL` | `http://localhost:3000` (or your production URL) | ✅ |
+| `DISABLE_REGISTRATION` | Set to `true` to disable new signups on self-hosted instances | ⚙️ Optional |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID (only for Google Forms integration) | ⚙️ Optional |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret (only for Google Forms integration) | ⚙️ Optional |
 
@@ -130,6 +135,12 @@ If your OAuth consent screen is in **"Testing"** mode (not published), only adde
 3. Add the Google account email(s) that will use Siftly
 
 > ✅ That's it! Now go to Siftly → **Dashboard → Import** → Click **"Connect with Google"** and you're ready to import Google Forms responses.
+
+---
+
+## 👨‍💻 Author
+
+Created with ❤️ by [Narek Danielyan](https://www.linkedin.com/in/nar-danielyan)
 
 ---
 
