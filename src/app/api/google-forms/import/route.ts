@@ -19,13 +19,13 @@ async function fetchGitHubSummary(text: string): Promise<string> {
     });
     if (!res.ok) return "";
     const repos = await res.json();
-    if (!Array.isArray(repos) || repos.length === 0) return `\n GITHUB ՊՈՐՏՖՈԼԻՈ: @${username} (0 բաց ռեպոզիտորիա)\n`;
+    if (!Array.isArray(repos) || repos.length === 0) return `\n GITHUB PORTFOLIO: @${username} (0 public repositories)\n`;
 
     const repoList = repos
-      .map((r: any) => `- ${r.name} (${r.language || "N/A"}, ⭐${r.stargazers_count}): ${r.description || "Առանց նկարագրության"}`)
+      .map((r: any) => `- ${r.name} (${r.language || "N/A"}, ⭐${r.stargazers_count}): ${r.description || "No description"}`)
       .join("\n");
 
-    return `\nGITHUB ՊՈՐՏՖՈԼԻՈ (Թեկնածուի @${username} էջի ռեպոզիտորիաները):\n${repoList}\n`;
+    return `\nGITHUB PORTFOLIO (@${username}):\n${repoList}\n`;
   } catch {
     return "";
   }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const { formUrl, aiEvaluationMode, jobDescription, forceReevaluate } = await req.json();
 
   if (!formUrl) {
-    return NextResponse.json({ error: "Google Forms URL-ը լրացված չէ" }, { status: 400 });
+    return NextResponse.json({ error: "Google Forms URL is required" }, { status: 400 });
   }
 
   // Google Forms API strictly requires the internal Edit Form ID
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Խնդրում ենք պատճենել Google Forms-ի Edit հղումը (browser-ի tab-ի հղումը, որն ավարտվում է /edit-ով, օրինակ՝ https://docs.google.com/forms/d/.../edit): Google Forms API-ն պահանջում է Edit ID-ն:",
+          "Please copy the Google Forms Edit URL from your browser address bar (ending in /edit, e.g. https://docs.google.com/forms/d/.../edit). Google Forms API requires the Edit ID.",
       },
       { status: 400 }
     );
@@ -59,12 +59,12 @@ export async function POST(req: Request) {
   const tokenRecord = await prisma.googleToken.findUnique({ where: { userId: user.id } });
   if (!tokenRecord) {
     return NextResponse.json(
-      { error: "Խնդրում ենք նախ կապել Google հաշիվը (Connect with Google)" },
+      { error: "Please connect your Google account first (Connect with Google)" },
       { status: 401 }
     );
   }
 
-  let title = "Google Forms Հարցաշար";
+  let title = "Google Form";
   let rawQuestions: any[] = [];
   let allResponses: any[] = [];
   let driveClient: any = null;
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     driveClient = google.drive({ version: "v3", auth: oauth2Client });
 
     const formData = await forms.forms.get({ formId: googleFormId });
-    title = formData.data.info?.title || "Google Forms Հարցաշար";
+    title = formData.data.info?.title || "Google Form";
     rawQuestions = (formData.data.items || []).filter((i: any) => i.questionItem);
 
     let pageToken: string | undefined = undefined;
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
   } catch (apiErr: any) {
     console.error("Google Forms API Error:", apiErr);
     return NextResponse.json(
-      { error: `Google Forms API սխալ: ${apiErr.message || "Form-ը չգտնվեց"}` },
+      { error: `Google Forms API error: ${apiErr.message || "Form not found"}` },
       { status: 400 }
     );
   }
@@ -149,7 +149,7 @@ export async function POST(req: Request) {
         googleFormId,
         questions: {
           create: rawQuestions.map((item: any) => ({
-            text: item.title || "Հարց",
+            text: item.title || "Question",
             type: "text",
           })),
         },
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
       success: true,
       formId: formRecord.id,
       importedCount: 0,
-      message: "Նոր պատասխաններ չկան",
+      message: "No new responses to import",
     });
   }
 
@@ -197,7 +197,7 @@ export async function POST(req: Request) {
 
     for (let idx = 0; idx < rawQuestions.length; idx++) {
       const googleItem = rawQuestions[idx];
-      const qText = googleItem.title || `Հարց ${idx + 1}`;
+      const qText = googleItem.title || `Question ${idx + 1}`;
       const qTextLower = qText.toLowerCase();
       const dbQ = formRecord.questions[idx];
       const gQId = googleItem.questionItem?.question?.questionId;
@@ -207,7 +207,7 @@ export async function POST(req: Request) {
       const textValues = answerObj?.textAnswers?.answers?.map((a: any) => a.value).filter(Boolean) || [];
       const fileUploadAnswers = answerObj?.fileUploadAnswers?.answers || [];
 
-      let value = textValues.length > 0 ? textValues.join(", ") : "Չի պատասխանել";
+      let value = textValues.length > 0 ? textValues.join(", ") : "No answer provided";
 
       if (fileUploadAnswers.length > 0 && driveClient) {
         value = "[PDF CV Attached]";
@@ -244,7 +244,7 @@ export async function POST(req: Request) {
       }
 
       if (!extractedName && (qTextLower.includes("անուն") || qTextLower.includes("name"))) {
-        if (value && value !== "Չի պատասխանել") {
+        if (value && value !== "No answer provided" && value !== "Չի պատասխանել") {
           extractedName = value.trim();
         }
       }
@@ -254,45 +254,45 @@ export async function POST(req: Request) {
         if (ghSummary) githubTextCombined += ghSummary;
       }
 
-      qaText += `Հարց ${idx + 1}: ${qText}\nՊատասխան: ${value}\n\n`;
+      qaText += `Question ${idx + 1}: ${qText}\nAnswer: ${value}\n\n`;
     }
 
     const finalEmail = extractedEmail || `anon-${response.responseId?.slice(0, 8)}@import`;
-    let firstName = "Թեկնածու";
+    let firstName = "Applicant";
     let lastName = response.responseId?.slice(0, 6) || "—";
 
     if (extractedName) {
       const parts = extractedName.split(" ").filter(Boolean);
-      firstName = parts[0] || "Թեկնածու";
+      firstName = parts[0] || "Applicant";
       lastName = parts.slice(1).join(" ") || "—";
     } else if (extractedEmail && !extractedEmail.startsWith("anon-")) {
       const emailName = extractedEmail.split("@")[0].replace(/[._]/g, " ");
       const parts = emailName.split(" ").filter(Boolean);
-      firstName = parts[0] || "Թեկնածու";
+      firstName = parts[0] || "Applicant";
       lastName = parts.slice(1).join(" ") || "—";
     }
 
     let aiScore = 0;
-    let aiSummary = "AI գնահատումը չի կատարվել";
+    let aiSummary = "AI evaluation was not performed";
     try {
       const model = genAI.getGenerativeModel({
         model: "gemini-flash-latest",
         generationConfig: { responseMimeType: "application/json" },
       });
-      const promptText = `Դու HR-ի ավագ փորձագետ և տեխնիկական հարցազրուցավար ես:
-Job Description: ${jobDescription || formRecord.jobDescription || "Ընդհանուր մասնագիտական հմտություններ"}
-Ռեժիմ: ${aiEvaluationMode || formRecord.aiEvaluationMode || "NORMAL"}
+      const promptText = `You are a Senior Technical HR Evaluator.
+Job Description: ${jobDescription || formRecord.jobDescription || "General professional software development skills"}
+Mode: ${aiEvaluationMode || formRecord.aiEvaluationMode || "NORMAL"}
 
-ՀՐԱՀԱՆԳՆԵՐ ԳՆԱՀԱՏՄԱՆ ՀԱՄԱՐ:
-1. ԽՈՐՈՒԹՅԱՄԲ ՈՒՍՈՒՄՆԱՍԻՐԻՐ թեկնածուի պատասխանները, կցված ռեզյումեն/CV-ն (եթե կա) և GitHub ռեպոզիտորիաները (եթե առկա են):
-2. Եթե ռեզյումե/CV կամ GitHub էջ է տրամադրված, ՀԱՏՈՒԿ ՈՒՇԱԴՐՈՒԹՅՈՒՆ ԴԱՐՁՐՈՒ նրա իրական նախագծերին, ծրագրավորման լեզուներին, աշխատանքային փորձին և stack-ին:
-3. Տուր ՄԱՆՐԱՄԱՍՆ ՈՒ ԽՈՐԸ վերլուծություն (4-6 նախադասություն):
+INSTRUCTIONS:
+1. Thoroughly analyze candidate answers, attached PDF resume/CV (if available), and GitHub repositories (if available).
+2. Pay attention to real projects, technical skills, experience, and stack alignment with the Job Description.
+3. Write a detailed HR analytical summary (4-6 sentences). Write the summary in the primary language of the Job Description or applicant responses (English or Armenian).
 
-ԹԵԿՆԱԾՈՒԻ ՏՎՅԱԼՆԵՐԸ ԵՎ ՊԱՏԱՍԽԱՆՆԵՐԸ:
+APPLICANT DATA:
 ${qaText}${githubTextCombined}
 
-ՎԵՐԱԴԱՐՁՐՈՒ ՄԻԱՅՆ JSON (առանց Markdown-ի):
-{"score": 0-100, "summary": "(Մանրամասն, բովանդակալից և երկար HR վերլուծություն 4-6 նախադասությամբ)"}`;
+RETURN ONLY VALID JSON (no markdown):
+{"score": 0-100, "summary": "(Detailed 4-6 sentence HR analytical summary)"}`;
       const contents: any[] = [promptText, ...pdfInlineParts];
       let result;
       try {
@@ -307,7 +307,7 @@ ${qaText}${githubTextCombined}
       aiSummary = parsed.summary ?? "";
     } catch (err: any) {
       console.error("Gemini AI Final Error:", err);
-      aiSummary = "AI գնահատումը ձախողվեց: Խնդրում ենք ստուգել GEMINI_API_KEY-ը:";
+      aiSummary = "AI evaluation failed. Please check your API key or try again.";
     }
 
     if (forceReevaluate && response.responseId) {
@@ -354,6 +354,6 @@ ${qaText}${githubTextCombined}
     success: true,
     formId: formRecord.id,
     importedCount,
-    message: `${importedCount} դիմորդ գնահատվեց`,
+    message: `${importedCount} applicant(s) evaluated successfully`,
   });
 }

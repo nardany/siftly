@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function CopyLinkButton({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
 
   const handleCopy = () => {
     const fullLink = `${window.location.origin}/apply/${slug}`;
@@ -27,7 +29,7 @@ export default function CopyLinkButton({ slug }: { slug: string }) {
         flex: "1"
       }}
     >
-      {copied ? "✓ Պատճենված է" : "🔗 Պատճենել հղումը"}
+      {copied ? t.linkCopied : t.copyLink}
     </button>
   );
 }

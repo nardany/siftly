@@ -1,9 +1,10 @@
 "use client";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Area, AreaChart
+  Area, AreaChart
 } from "recharts";
 import style from "./page.module.css";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Props {
   chartData: { name: string; count: number; avg: number }[];
@@ -11,10 +12,12 @@ interface Props {
 }
 
 export default function OverviewCharts({ chartData, dailyData }: Props) {
+  const { t, lang } = useLanguage();
+
   return (
     <div className={style.chartsGrid}>
       <div className={style.chartCard}>
-        <div className={style.chartTitle}>👥 Դիմորդներ ըստ Հաստիքի</div>
+        <div className={style.chartTitle}>👥 {t.candidatesPerForm}</div>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -22,7 +25,7 @@ export default function OverviewCharts({ chartData, dailyData }: Props) {
             <YAxis tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13 }}
-              formatter={(val: any) => [val, "Դիմորդ"]}
+              formatter={(val: any) => [val, lang === "hy" ? "Դիմորդ" : "Applicants"]}
             />
             <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
           </BarChart>
@@ -30,7 +33,7 @@ export default function OverviewCharts({ chartData, dailyData }: Props) {
       </div>
 
       <div className={style.chartCard}>
-        <div className={style.chartTitle}>🤖 Միջին AI Score ըստ Հաստիքի</div>
+        <div className={style.chartTitle}>🤖 {lang === "hy" ? "Միջին AI Score ըստ Հաստիքի" : "Average AI Score per Position"}</div>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -46,7 +49,7 @@ export default function OverviewCharts({ chartData, dailyData }: Props) {
       </div>
 
       <div className={`${style.chartCard} ${style.chartCardFull}`}>
-        <div className={style.chartTitle}>📈 Վերջին 7 Օրվա Ակտիվություն</div>
+        <div className={style.chartTitle}>📈 {lang === "hy" ? "Վերջին 7 Օրվա Ակտիվություն" : "Last 7 Days Activity"}</div>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={dailyData} margin={{ top: 8, right: 16, left: -20, bottom: 0 }}>
             <defs>
@@ -60,7 +63,7 @@ export default function OverviewCharts({ chartData, dailyData }: Props) {
             <YAxis tick={{ fontSize: 12, fill: "#64748b" }} allowDecimals={false} />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13 }}
-              formatter={(val: any) => [val, "Դիմորդ"]}
+              formatter={(val: any) => [val, lang === "hy" ? "Դիմորդ" : "Applicants"]}
             />
             <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} fill="url(#colorCount)" />
           </AreaChart>

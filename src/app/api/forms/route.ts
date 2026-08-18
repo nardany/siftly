@@ -33,9 +33,9 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json({ message: "Հարցաշարը ստեղծվեց", slug: newForm.slug }, { status: 201 });
+    return NextResponse.json({ message: "Form created successfully", slug: newForm.slug }, { status: 201 });
   } catch (error) {
-    console.error("Հարցաշարի պահպանման սխալ:", error);
-    return NextResponse.json({ error: "Սխալ տվյալների պահպանման ժամանակ" }, { status: 500 });
+    console.error("Form creation error:", error);
+    return NextResponse.json({ error: "Error saving form data" }, { status: 500 });
   }
 }

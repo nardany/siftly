@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import style from "./import.module.css";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function ImportPage() {
+  const { t, lang } = useLanguage();
   const [formUrl, setFormUrl] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [aiMode, setAiMode] = useState("NORMAL");
@@ -24,7 +26,7 @@ export default function ImportPage() {
 
   const handleImport = async () => {
     if (!formUrl) {
-      setError("Խնդրում ենք լրացնել Google Forms URL-ը");
+      setError(lang === "hy" ? "Խնդրում ենք լրացնել Google Forms URL-ը" : "Please enter a Google Form URL");
       return;
     }
     setIsLoading(true);
@@ -38,12 +40,12 @@ export default function ImportPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Import-ի սխալ");
+        setError(data.error || (lang === "hy" ? "Import-ի սխալ" : "Import error"));
         return;
       }
       setResult(data);
     } catch {
-      setError("Կապի սխալ — կրկին փորձեք");
+      setError(lang === "hy" ? "Կապի սխալ — կրկին փորձեք" : "Connection error — please try again");
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +53,8 @@ export default function ImportPage() {
 
   return (
     <div className={style.container}>
-      <h1 className={style.title}>Google Forms Import 🚀</h1>
-      <p className={style.subtitle}>
-        Կպցրու Google Forms-ի հղումը, և Siftly-ն ավտոմատ կներմուծի հարցաշարն ու դիմորդներին AI գնահատմամբ:
-      </p>
+      <h1 className={style.title}>{t.googleImportTitle}</h1>
+      <p className={style.subtitle}>{t.googleImportSubtitle}</p>
 
       {/* Google Connection Status Banner */}
       <div
@@ -70,13 +70,13 @@ export default function ImportPage() {
         <div>
           <h3 style={{ margin: 0, fontSize: "16px", color: isConnected ? "#166534" : "#854d0e" }}>
             {isConnected === null
-              ? "Ստուգվում է Google հաշվի կապը..."
+              ? (lang === "hy" ? "Ստուգվում է Google հաշվի կապը..." : "Checking Google account status...")
               : isConnected
-              ? "🟢 Google հաշիվը կապված է Siftly-ին"
-              : "⚠️ Google հաշիվը դեռ կապված չէ"}
+              ? t.googleAccountConnected
+              : t.googleAccountNotConnected}
           </h3>
           <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}>
-            Google Forms-ից տվյալներ կարդալու համար անհրաժեշտ է 1 անգամ կապել Google հաշիվը:
+            {t.googleConnectionDesc}
           </p>
         </div>
 
@@ -94,16 +94,14 @@ export default function ImportPage() {
             boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           }}
         >
-          {isConnected ? "🔄 Կրկին Կապել Google" : "🔗 Connect with Google"}
+          {isConnected ? t.reconnectGoogle : t.connectWithGoogle}
         </button>
       </div>
 
       <div className={style.card}>
-        <div className={style.stepBadge}>Քայլ 1</div>
-        <h2 className={style.cardTitle}>Google Forms Հղումը (URL)</h2>
-        <p className={style.cardDesc}>
-          Պատճենիր հղումը Google Forms-ի Edit էջից (browser-ի tab-ի հղումը, որն ավարտվում է /edit-ով, օրինակ՝ https://docs.google.com/forms/d/.../edit):
-        </p>
+        <div className={style.stepBadge}>{lang === "hy" ? "Քայլ 1" : "Step 1"}</div>
+        <h2 className={style.cardTitle}>{t.step1Title}</h2>
+        <p className={style.cardDesc}>{t.step1Desc}</p>
         <input
           type="url"
           value={formUrl}
@@ -114,28 +112,28 @@ export default function ImportPage() {
       </div>
 
       <div className={style.card}>
-        <div className={style.stepBadge}>Քայլ 2</div>
-        <h2 className={style.cardTitle}>Հաստիքի Նկարագիր (Job Description) և AI Ռեժիմ</h2>
+        <div className={style.stepBadge}>{lang === "hy" ? "Քայլ 2" : "Step 2"}</div>
+        <h2 className={style.cardTitle}>{t.step2Title}</h2>
         <textarea
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Նկարագրիր հաստիքի պահանջները, որպեսզի AI-ն ճշգրիտ գնահատի դիմորդներին..."
+          placeholder={t.jobDescriptionPlaceholder}
           className={style.textarea}
           rows={4}
         />
         <div style={{ marginTop: "12px" }}>
-          <label className={style.selectLabel}>AI Գնահատման Ռեժիմ</label>
+          <label className={style.selectLabel}>{t.aiStrictness}</label>
           <select value={aiMode} onChange={(e) => setAiMode(e.target.value)} className={style.select}>
-            <option value="LENIENT">Մեղմ (Junior level)</option>
-            <option value="NORMAL">Նորմալ (Standard)</option>
-            <option value="STRICT">Խիստ (Senior level)</option>
+            <option value="LENIENT">{t.lenient}</option>
+            <option value="NORMAL">{t.normal}</option>
+            <option value="STRICT">{t.strict}</option>
           </select>
         </div>
       </div>
 
       {/* Submit Button */}
       <button onClick={handleImport} disabled={isLoading || !formUrl} className={style.importBtn}>
-        {isLoading ? "Ներմուծվում և գնահատվում է..." : "🚀 Ներմուծել և Գնահատել AI-ով"}
+        {isLoading ? t.importingLoading : t.importButton}
       </button>
 
       {error && (
@@ -156,7 +154,7 @@ export default function ImportPage() {
                 cursor: "pointer",
               }}
             >
-              🔗 Connect with Google Now
+              {t.connectWithGoogle}
             </button>
           )}
         </div>
@@ -165,9 +163,9 @@ export default function ImportPage() {
       {result && (
         <div className={style.successBox}>
           <h3>🎉 {result.message}</h3>
-          <p>Հարցաշարը հաջողությամբ ներմուծվել է Siftly</p>
+          <p>{lang === "hy" ? "Հարցաշարը հաջողությամբ ներմուծվել է Siftly" : "Form imported successfully into Siftly"}</p>
           <a href={`/dashboard/forms/${result.formId}/candidates`} className={style.viewResultBtn}>
-            Տեսնել Դիմորդներին →
+            {lang === "hy" ? "Տեսնել Դիմորդներին →" : "View Applicants →"}
           </a>
         </div>
       )}

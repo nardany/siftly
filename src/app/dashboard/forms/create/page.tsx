@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import style from "./builder.module.css";
+import { useLanguage } from "@/lib/LanguageContext";
 
 type Question = {
   id: string;
@@ -12,7 +13,8 @@ type Question = {
 
 export default function FormBuilder() {
   const router = useRouter();
-  const [title, setTitle] = useState("Անանուն Հարցաշար");
+  const { t, lang } = useLanguage();
+  const [title, setTitle] = useState(lang === "hy" ? "Անանուն Հարցաշար" : "Untitled Form");
   const [themeColor, setThemeColor] = useState("#0f172a");
   const [jobDescription, setJobDescription] = useState("");
   const [aiEvaluationMode, setAiEvaluationMode] = useState("NORMAL");
@@ -28,7 +30,7 @@ export default function FormBuilder() {
 
   const removeQuestion = (id: string) => {
     if (questions.length === 1) {
-      return alert("Հարցաշարում պետք է լինի առնվազն 1 հարց:");
+      return alert(lang === "hy" ? "Հարցաշարում պետք է լինի առնվազն 1 հարց:" : "Form must have at least 1 question.");
     }
     setQuestions(questions.filter(q => q.id !== id));
   };
@@ -56,7 +58,10 @@ export default function FormBuilder() {
       if (q.id === id) {
         const updatedQuestion = { ...q, [field]: value };
         if (field === "type" && (value === "SINGLE_CHOICE" || value === "MULTIPLE_CHOICE") && !q.options) {
-          updatedQuestion.options = ["Տարբերակ 1", "Տարբերակ 2"];
+          updatedQuestion.options = [
+            lang === "hy" ? "Տարբերակ 1" : "Option 1",
+            lang === "hy" ? "Տարբերակ 2" : "Option 2"
+          ];
         }
         return updatedQuestion;
       }
@@ -78,7 +83,8 @@ export default function FormBuilder() {
   const addOption = (questionId: string) => {
     setQuestions(questions.map(q => {
       if (q.id === questionId && q.options) {
-        return { ...q, options: [...q.options, `Տարբերակ ${q.options.length + 1}`] };
+        const optLabel = lang === "hy" ? `Տարբերակ ${q.options.length + 1}` : `Option ${q.options.length + 1}`;
+        return { ...q, options: [...q.options, optLabel] };
       }
       return q;
     }));
@@ -86,7 +92,7 @@ export default function FormBuilder() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      return alert("Խնդրում ենք գրել հարցաշարի վերնագիրը");
+      return alert(lang === "hy" ? "Խնդրում ենք գրել հարցաշարի վերնագիրը" : "Please enter a form title");
     }
 
     const formattedQuestions = questions.map(q => ({
@@ -106,10 +112,10 @@ export default function FormBuilder() {
     const data = await res.json();
 
     if (res.ok) {
-      alert("Հարցաշարը հաջողությամբ պահպանվեց բազայում!\nՁեր հղումը՝ /apply/" + data.slug);
+      alert(lang === "hy" ? "Հարցաշարը հաջողությամբ պահպանվեց!" : "Form saved successfully!");
       router.push("/dashboard/forms");
     } else {
-      alert("Սխալ: " + data.error);
+      alert("Error: " + data.error);
     }
   };
 
@@ -121,10 +127,10 @@ export default function FormBuilder() {
           className={style.titleInput}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Հարցաշարի վերնագիրը"
+          placeholder={t.formTitlePlaceholder}
         />
         <div style={{ marginTop: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <label style={{ fontSize: "14px", color: "#64748b" }}>Ընտրիր գույնը:</label>
+          <label style={{ fontSize: "14px", color: "#64748b" }}>{t.selectThemeColor}</label>
           <input
             type="color"
             value={themeColor}
@@ -137,18 +143,18 @@ export default function FormBuilder() {
           className={style.jobDescriptionInput}
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Հաստիքի նկարագրությունը / պահանջները (Սա կարդալու է միայն AI-ը, դիմորդը չի տեսնելու)"
+          placeholder={t.jobDescriptionPlaceholder}
         />
         <div className={style.selectWrapper}>
-          <label className={style.selectLabel}>AI Գնահատման Խստություն</label>
+          <label className={style.selectLabel}>{t.aiStrictness}</label>
           <select
             value={aiEvaluationMode}
             onChange={(e) => setAiEvaluationMode(e.target.value)}
             className={style.selectInput}
           >
-            <option value="LENIENT">Մեղմ</option>
-            <option value="NORMAL">Նորմալ</option>
-            <option value="STRICT">Խիստ</option>
+            <option value="LENIENT">{t.lenient}</option>
+            <option value="NORMAL">{t.normal}</option>
+            <option value="STRICT">{t.strict}</option>
           </select>
         </div>
       </div>
@@ -169,7 +175,7 @@ export default function FormBuilder() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b", cursor: "grab" }}>
-              ⋮⋮ (Հարց {index + 1})
+              {t.dragAndDrop} ({lang === "hy" ? `Հարց #${index + 1}` : `Question #${index + 1}`})
             </span>
             <button
               onClick={() => removeQuestion(q.id)}
@@ -182,7 +188,7 @@ export default function FormBuilder() {
                 cursor: "pointer",
               }}
             >
-              🗑️ Ջնջել
+              {t.delete}
             </button>
           </div>
 
@@ -190,7 +196,7 @@ export default function FormBuilder() {
             <input
               type="text"
               className={style.questionTextInput}
-              placeholder={`Հարց ${index + 1}`}
+              placeholder={lang === "hy" ? `Հարց ${index + 1}` : `Question ${index + 1}`}
               value={q.text}
               onChange={(e) => updateQuestion(q.id, "text", e.target.value)}
             />
@@ -199,21 +205,21 @@ export default function FormBuilder() {
               value={q.type}
               onChange={(e) => updateQuestion(q.id, "type", e.target.value)}
             >
-              <option value="TEXT">Կարճ Տեքստ</option>
-              <option value="SINGLE_CHOICE">Միակ ընտրություն (Radio)</option>
-              <option value="MULTIPLE_CHOICE">Բազմակի ընտրություն (Checkbox)</option>
-              <option value="FILE">Ֆայլ (CV/Resume)</option>
-              <option value="CODE">Կոդի Գրառում (Code Editor)</option>
-              <option value="URL">Հղում (GitHub / LinkedIn)</option>
+              <option value="TEXT">{t.shortText}</option>
+              <option value="SINGLE_CHOICE">{t.singleChoice}</option>
+              <option value="MULTIPLE_CHOICE">{t.multipleChoice}</option>
+              <option value="FILE">{t.fileUpload}</option>
+              <option value="CODE">{t.codeEditor}</option>
+              <option value="URL">{t.urlLink}</option>
             </select>
           </div>
 
           {(q.type === "SINGLE_CHOICE" || q.type === "MULTIPLE_CHOICE") && q.options && (
             <div className={style.optionsContainer}>
               <p className={style.optionsTitle}>
-                Պատասխանի տարբերակներ
+                {t.optionsTitle}
                 <span style={{ fontWeight: "normal", color: "#94a3b8", marginLeft: "8px" }}>
-                  {q.type === "SINGLE_CHOICE" ? "(Դիմորդը կընտրի միայն 1 հատ)" : "(Դիմորդը կարող է ընտրել մի քանի հատ)"}
+                  {q.type === "SINGLE_CHOICE" ? t.singleChoiceNote : t.multipleChoiceNote}
                 </span>
               </p>
 
@@ -235,7 +241,7 @@ export default function FormBuilder() {
               ))}
 
               <button onClick={() => addOption(q.id)} className={style.addOptionBtn}>
-                + Ավելացնել տարբերակ
+                {t.addOption}
               </button>
             </div>
           )}
@@ -244,10 +250,10 @@ export default function FormBuilder() {
 
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px" }}>
         <button onClick={addQuestion} className={style.addBtn}>
-          + Ավելացնել Հարց
+          {t.addQuestion}
         </button>
         <button onClick={handleSave} className={style.saveBtn}>
-          Պահպանել Հարցաշարը
+          {t.saveForm}
         </button>
       </div>
     </div>

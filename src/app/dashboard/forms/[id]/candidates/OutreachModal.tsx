@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Candidate {
   id: string;
@@ -28,9 +29,10 @@ export default function OutreachModal({
   onClose,
   onStatusChange,
 }: OutreachModalProps) {
+  const { lang } = useLanguage();
   const isInvite = type === "INVITE";
 
-  const defaultInviteTemplate = `Բարև Ձեզ {firstName} {lastName} ջան,
+  const defaultInviteTemplateArm = `Բարև Ձեզ {firstName} {lastName} ջան,
 
 Շնորհավորում ենք: Դուք հաջողությամբ անցել եք {jobTitle} հաստիքի նախնական փուլը:
 
@@ -39,7 +41,16 @@ export default function OutreachModal({
 Հարգանքներով,
 HR Թիմ`;
 
-  const defaultRejectTemplate = `Բարև Ձեզ {firstName} {lastName} ջան,
+  const defaultInviteTemplateEng = `Dear {firstName} {lastName},
+
+Congratulations! You have successfully passed the initial screening phase for the {jobTitle} position.
+
+Please reply to this email to confirm your interview date and time.
+
+Best regards,
+HR Team`;
+
+  const defaultRejectTemplateArm = `Բարև Ձեզ {firstName} {lastName} ջան,
 
 Շնորհակալություն {jobTitle} հաստիքին դիմելու և մեր հարցաշարը լրացնելու համար:
 
@@ -50,20 +61,32 @@ HR Թիմ`;
 Հարգանքներով,
 HR Թիմ`;
 
-  const templateToUse = customTemplate?.trim() || (isInvite ? defaultInviteTemplate : defaultRejectTemplate);
+  const defaultRejectTemplateEng = `Dear {firstName} {lastName},
+
+Thank you for applying to the {jobTitle} position and taking the screening assessment.
+
+Unfortunately, we have decided to move forward with other candidates at this time. We will keep your resume on file for future opportunities.
+
+Best regards,
+HR Team`;
+
+  const defaultTemplate = lang === "hy"
+    ? (isInvite ? defaultInviteTemplateArm : defaultRejectTemplateArm)
+    : (isInvite ? defaultInviteTemplateEng : defaultRejectTemplateEng);
+
+  const templateToUse = customTemplate?.trim() || defaultTemplate;
 
   const formattedBody = templateToUse
-    .replaceAll("{firstName}", candidate.firstName || "Դիմորդ")
+    .replaceAll("{firstName}", candidate.firstName || (lang === "hy" ? "Դիմորդ" : "Applicant"))
     .replaceAll("{lastName}", candidate.lastName || "")
-    .replaceAll("{jobTitle}", jobTitle || "Հաստիք")
+    .replaceAll("{jobTitle}", jobTitle || (lang === "hy" ? "Հաստիք" : "Position"))
     .replaceAll("{score}", (candidate.aiScore ?? 0).toString());
 
-  const subject = isInvite
-    ? `Հարցազրույցի հրավեր — ${jobTitle}`
-    : `Տեղեկացում դիմումի վերաբերյալ — ${jobTitle}`;
+  const subject = lang === "hy"
+    ? (isInvite ? `Հարցազրույցի հրավեր — ${jobTitle}` : `Տեղեկացում դիմումի վերաբերյալ — ${jobTitle}`)
+    : (isInvite ? `Interview Invitation — ${jobTitle}` : `Application Update — ${jobTitle}`);
 
   const [bodyText, setBodyText] = useState(formattedBody);
-  const [copied, setCopied] = useState(false);
 
   const handleSendViaGmail = async () => {
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
@@ -80,12 +103,6 @@ HR Թիմ`;
     onStatusChange(candidate.id, newStatus);
     window.open(gmailUrl, "_blank");
     onClose();
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(bodyText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -119,7 +136,7 @@ HR Թիմ`;
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: "20px", fontWeight: "800", color: "#0f172a", margin: 0 }}>
-            {isInvite ? "📩 Հարցազրույցի Հրավեր" : "✉️ Մերժման Նամակ"} — {candidate.firstName} {candidate.lastName}
+            {isInvite ? (lang === "hy" ? "📩 Հարցազրույցի Հրավեր" : "📩 Interview Invitation") : (lang === "hy" ? "✉️ Մերժման Նամակ" : "✉️ Rejection Email")} — {candidate.firstName} {candidate.lastName}
           </h2>
           <button
             onClick={onClose}
@@ -137,12 +154,12 @@ HR Թիմ`;
 
         <div>
           <label style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "4px" }}>
-            ԷԼ․ ՓՈՍՏ
+            {lang === "hy" ? "ԷԼ․ ՓՈՍՏ" : "EMAIL ADDRESS"}
           </label>
           <input
             type="text"
             readOnly
-            value={candidate.email || "Էլ. փոստ չկա"}
+            value={candidate.email || (lang === "hy" ? "Էլ. փոստ չկա" : "No email available")}
             style={{
               width: "100%",
               padding: "10px 14px",
@@ -157,7 +174,7 @@ HR Թիմ`;
 
         <div>
           <label style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "4px" }}>
-            ՆԱՄԱԿԻ ՏԵՔՍՏ (ԿԱՐՈՂ ԵՍ ՓՈԽԵԼ ՆԱԽՔԱՆ ՈՒՂԱՐԿԵԼԸ)
+            {lang === "hy" ? "ՆԱՄԱԿԻ ՏԵՔՍՏ (ԿԱՐՈՂ ԵՍ ՓՈԽԵԼ)" : "EMAIL BODY (EDITABLE)"}
           </label>
           <textarea
             rows={8}
@@ -193,7 +210,7 @@ HR Թիմ`;
               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             }}
           >
-            ✉️ Ուղարկել Gmail-ով →
+            {lang === "hy" ? "✉️ Ուղարկել Gmail-ով →" : "✉️ Send via Gmail →"}
           </button>
         </div>
       </div>

@@ -3,16 +3,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import style from "./layout.module.css";
+import { LanguageProvider, useLanguage } from "@/lib/LanguageContext";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { lang, setLang, t } = useLanguage();
 
   const navItems = [
-    { href: "/dashboard", label: "Overview", icon: "📊" },
-    { href: "/dashboard/forms", label: "My Forms", icon: "📋" },
-    { href: "/dashboard/import", label: "Google Forms Import", icon: "🔗" },
-    { href: "/dashboard/settings", label: "Settings", icon: "⚙️" },
+    { href: "/dashboard", label: t.dashboard, icon: "📊" },
+    { href: "/dashboard/forms", label: t.forms, icon: "📋" },
+    { href: "/dashboard/import", label: t.importGoogleForms, icon: "🔗" },
+    { href: "/dashboard/settings", label: t.settings, icon: "⚙️" },
   ];
 
   return (
@@ -22,13 +24,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <img src="/siftlylogo.png" alt="Siftly" className={style.logoImage} />
           <span className={style.logoText}>Siftly</span>
         </div>
-        <button
-          className={style.hamburger}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle navigation"
-        >
-          {mobileOpen ? "✕" : "☰"}
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <button
+            onClick={() => setLang(lang === "hy" ? "en" : "hy")}
+            style={{
+              padding: "4px 8px",
+              borderRadius: "6px",
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.1)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            {lang === "hy" ? "🇦🇲 HY" : "🇬🇧 EN"}
+          </button>
+          <button
+            className={style.hamburger}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle navigation"
+          >
+            {mobileOpen ? "✕" : "☰"}
+          </button>
+        </div>
       </header>
 
       {mobileOpen && (
@@ -60,6 +79,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className={style.sidebarFooter}>
           <button
+            onClick={() => setLang(lang === "hy" ? "en" : "hy")}
+            style={{
+              width: "100%",
+              marginBottom: "10px",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.08)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <span>🌐</span>
+            <span>{lang === "hy" ? "🇦🇲 Armenian (HY)" : "🇬🇧 English (EN)"}</span>
+          </button>
+
+          <button
             className={style.logoutBtn}
             onClick={async () => {
               await fetch("/api/auth/logout", { method: "POST" });
@@ -67,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }}
           >
             <span className={style.navIcon}>🚪</span>
-            <span>Դուրս գալ</span>
+            <span>{t.logout}</span>
           </button>
         </div>
       </aside>
@@ -76,5 +118,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {children}
       </main>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <LanguageProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </LanguageProvider>
   );
 }

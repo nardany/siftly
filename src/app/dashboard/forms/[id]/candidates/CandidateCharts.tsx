@@ -2,6 +2,7 @@
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import style from "./candidates.module.css";
 import Link from "next/link";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Candidate {
   id: string;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function CandidateCharts({ passCount, failCount, total, topCandidates }: Props) {
+  const { t, lang } = useLanguage();
   const passRate = total > 0 ? Math.round((passCount / total) * 100) : 0;
   const passColor = passRate >= 60 ? "#22c55e" : passRate >= 30 ? "#f59e0b" : "#ef4444";
 
@@ -28,7 +30,6 @@ export default function CandidateCharts({ passCount, failCount, total, topCandid
 
   return (
     <div className={style.chartsRow}>
-
       <div className={style.chartCard}>
         <div className={style.chartTitle}>✅ Pass Rate</div>
         <div className={style.passRateWrapper}>
@@ -46,23 +47,23 @@ export default function CandidateCharts({ passCount, failCount, total, topCandid
             </ResponsiveContainer>
             <div className={style.gaugeCenter}>
               <div className={style.gaugeValue} style={{ color: passColor }}>{passRate}%</div>
-              <div className={style.gaugeLabel}>անցել են</div>
+              <div className={style.gaugeLabel}>{t.passedPercentSuffix}</div>
             </div>
           </div>
           <div className={style.passStats}>
             <div className={style.passStatRow}>
               <span className={style.passStatDot} style={{ backgroundColor: "#22c55e" }} />
-              <span className={style.passStatText}>Անցել (70+)</span>
+              <span className={style.passStatText}>{t.passedRangeLabel}</span>
               <strong>{passCount}</strong>
             </div>
             <div className={style.passStatRow}>
               <span className={style.passStatDot} style={{ backgroundColor: "#ef4444" }} />
-              <span className={style.passStatText}>Չանցել (&lt;70)</span>
+              <span className={style.passStatText}>{t.failedRangeLabel}</span>
               <strong>{failCount}</strong>
             </div>
             <div className={style.passStatRow}>
               <span className={style.passStatDot} style={{ backgroundColor: "#94a3b8" }} />
-              <span className={style.passStatText}>Ընդամենը</span>
+              <span className={style.passStatText}>{t.totalLabel}</span>
               <strong>{total}</strong>
             </div>
           </div>
@@ -70,9 +71,9 @@ export default function CandidateCharts({ passCount, failCount, total, topCandid
       </div>
 
       <div className={style.chartCard}>
-        <div className={style.chartTitle}>🏆 Leaderboard — TOP Դիմորդներ</div>
+        <div className={style.chartTitle}>{t.leaderboardTitle}</div>
         {topCandidates.length === 0 ? (
-          <div className={style.chartEmpty}>Դեռ տվյալ չկա</div>
+          <div className={style.chartEmpty}>{lang === "hy" ? "Դեռ տվյալ չկա" : "No data yet"}</div>
         ) : (
           <div className={style.leaderboard}>
             {topCandidates.map((c, i) => {
@@ -96,7 +97,6 @@ export default function CandidateCharts({ passCount, failCount, total, topCandid
           </div>
         )}
       </div>
-
     </div>
   );
 }

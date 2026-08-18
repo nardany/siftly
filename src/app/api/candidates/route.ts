@@ -17,13 +17,13 @@ async function fetchGitHubSummary(text: string): Promise<string> {
     });
     if (!res.ok) return "";
     const repos = await res.json();
-    if (!Array.isArray(repos) || repos.length === 0) return `\n GITHUB ՊՈՐՏՖՈԼԻՈ: @${username} (0 հանրային ռեպոզիտորիա)\n`;
+    if (!Array.isArray(repos) || repos.length === 0) return `\n GITHUB PORTFOLIO: @${username} (0 public repositories)\n`;
 
     const repoList = repos
-      .map((r: any) => `- ${r.name} (${r.language || "N/A"}, ${r.stargazers_count}): ${r.description || "Առանց նկարագրության"}`)
+      .map((r: any) => `- ${r.name} (${r.language || "N/A"}, ${r.stargazers_count} stars): ${r.description || "No description"}`)
       .join("\n");
 
-    return `\n🐙 GITHUB ՊՈՐՏՖՈԼԻՈ (Թեկնածուի @${username} էջի ռեպոզիտորիաները):\n${repoList}\n`;
+    return `\n🐙 GITHUB PORTFOLIO (@${username}):\n${repoList}\n`;
   } catch {
     return "";
   }
@@ -34,14 +34,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { formId, firstName, lastName, email, phone, answers, trustScore, cheatLogs, timeSpent } = body;
     if (!formId || !firstName || !lastName || !email) {
-      return NextResponse.json({ error: "Պարտադիր դաշտերը լրացված չեն" }, { status: 400 });
+      return NextResponse.json({ error: "Required fields are missing" }, { status: 400 });
     }
     const form = await prisma.form.findUnique({
       where: { id: formId },
       include: { questions: true }
     });
     if (!form) {
-      return NextResponse.json({ error: "Հարցաշարը չի գտնվել" }, { status: 404 });
+      return NextResponse.json({ error: "Form not found" }, { status: 404 });
     }
 
     let qaText = "";
@@ -60,10 +60,10 @@ export async function POST(request: Request) {
             mimeType: "application/pdf"
           }
         });
-        qaText += `Հարց ${index + 1}: ${q.text}\nԹեկնածուի պատասխանը: [Կցված է CV (PDF ֆայլ)]\n\n`;
+        qaText += `Question ${index + 1}: ${q.text}\nCandidate Answer: [Attached CV (PDF file)]\n\n`;
       } else {
-        const answerStr = typeof candidateAnswer === 'object' ? JSON.stringify(candidateAnswer) : candidateAnswer || "Չի պատասխանել";
-        qaText += `Հարց ${index + 1}: ${q.text}\nԹեկնածուի պատասխանը: ${answerStr}\n\n`;
+        const answerStr = typeof candidateAnswer === 'object' ? JSON.stringify(candidateAnswer) : candidateAnswer || "No answer provided";
+        qaText += `Question ${index + 1}: ${q.text}\nCandidate Answer: ${answerStr}\n\n`;
         if (typeof answerStr === "string" && answerStr.includes("github.com")) {
           const ghSummary = await fetchGitHubSummary(answerStr);
           if (ghSummary) githubTextCombined += ghSummary;
@@ -73,44 +73,41 @@ export async function POST(request: Request) {
 
     let strictnessPrompt = "";
     if (form.aiEvaluationMode === "STRICT") {
-      strictnessPrompt = "Դու ՇԱՏ ԽԻՍՏ գնահատող ես: Ամեն մի փոքր սխալի համար իջեցրու միավորը:";
+      strictnessPrompt = "You are a STRICT evaluator. Deduct points for every minor flaw or gap.";
     } else if (form.aiEvaluationMode === "LENIENT") {
-      strictnessPrompt = "Դու ՄԵՂՄ գնահատող ես: Մի իջեցրու միավորը մանր սխալների համար:";
+      strictnessPrompt = "You are a LENIENT evaluator. Do not penalize minor mistakes heavily.";
     } else {
-      strictnessPrompt = "Դու ՕԲՅԵԿՏԻՎ գնահատող ես: Տուր արդար և ճշգրիտ գնահատական:";
+      strictnessPrompt = "You are an OBJECTIVE evaluator. Give a fair and accurate assessment.";
     }
 
-    const systemPrompt = `Դու HR-ի ավագ փորձագետ և տեխնիկական հարցազրուցավար ես:
+    const systemPrompt = `You are a Senior Technical HR Interviewer and Candidate Evaluator.
 
-ՍՏՈՒԳՄԱՆ ՌԵԺԻՄ: ${strictnessPrompt}
+EVALUATION MODE: ${strictnessPrompt}
 
-ՀԱՍՏԻՔԻ ՆԿԱՐԱԳԻՐՆ ՈՒ ՊԱՀԱՆՋՆԵՐԸ (Job Description):
-${form.jobDescription || "Ընդհանուր մասնագիտական հմտություններ"}
+JOB DESCRIPTION & REQUIREMENTS:
+${form.jobDescription || "General professional software development skills"}
 
-ՀՐԱՀԱՆԳՆԵՐ ԳՆԱՀԱՏՄԱՆ ՀԱՄԱՐ:
-1. ԽՈՐՈՒԹՅԱՄԲ ՈՒՍՈՒՄՆԱՍԻՐԻՐ թեկնածուի պատասխանները, կցված ռեզյումեն/CV-ն (եթե կա) և GitHub ռեպոզիտորիաները (եթե առկա են):
-2. Եթե ռեզյումե/CV կամ GitHub էջ է տրամադրված, ՀԱՏՈՒԿ ՈՒՇԱԴՐՈՒԹՅՈՒՆ ԴԱՐՁՐՈՒ նրա իրական նախագծերին, ծրագրավորման լեզուներին, աշխատանքային փորձին և stack-ին:
-3. Տուր ՄԱՆՐԱՄԱՍՆ ՈՒ ԽՈՐԸ վերլուծություն (4-6 նախադասություն):
-   - Նկարագրիր թեկնածուի մասնագիտական փորձը, GitHub նախագծերը և ռեզյումեի հիմնական կետերը:
-   - Նշիր նրա ՈՒԺԵՂ ԿՈՂՄԵՐԸ և համապատասխանությունը Job Description-ի պահանջներին:
-   - Նշիր ԹՈՒՅԼ ԿՈՂՄԵՐԸ կամ բացթողումները (եթե կան):
-   - Տուր վերջնական HR եզրակացություն և հանձնարարական:
+INSTRUCTIONS:
+1. Thoroughly analyze the candidate's answers, attached PDF resume/CV (if available), and GitHub repositories (if available).
+2. Pay special attention to real projects, programming languages, experience, and tech stack alignment with the Job Description.
+3. Write a detailed, professional HR summary report (4-6 sentences). Write the report in the primary language of the Job Description or candidate responses (English or Armenian).
+4. Outline key strengths, potential gaps, and a final recommendation.
 
-ՎԵՐԱԴԱՐՁՐՈՒ ՄԻԱՅՆ JSON (առանց Markdown formatting-ի):
+RETURN ONLY VALID JSON (no markdown formatting):
 {
-  "score": (0-100 ամբողջ թիվ),
-  "summary": "(Մանրամասն, բովանդակալից և երկար HR վերլուծություն 4-6 նախադասությամբ)"
+  "score": (integer 0-100),
+  "summary": "(Detailed 4-6 sentence HR analytical summary)"
 }`;
 
     let aiScore = 0;
-    let aiSummary = "AI գնահատում չի կատարվել";
+    let aiSummary = "AI evaluation was not performed";
     try {
       const model = genAI.getGenerativeModel({
         model: "gemini-flash-latest",
         generationConfig: { responseMimeType: "application/json" }
       });
 
-      const fullPromptText = `${systemPrompt}\n\nԹԵԿՆԱԾՈՒԻ ՏՎՅԱԼՆԵՐԸ ԵՎ ՊԱՏԱՍԽԱՆՆԵՐԸ:\n${qaText}${githubTextCombined}`;
+      const fullPromptText = `${systemPrompt}\n\nCANDIDATE DATA & ANSWERS:\n${qaText}${githubTextCombined}`;
       const contents: any[] = [fullPromptText, ...pdfInlineParts];
 
       const result = await model.generateContent(contents);
@@ -118,10 +115,10 @@ ${form.jobDescription || "Ընդհանուր մասնագիտական հմտու
 
       const aiResponse = JSON.parse(text || "{}");
       aiScore = aiResponse.score || 0;
-      aiSummary = aiResponse.summary || "Գնահատում հնարավոր չեղավ անել";
+      aiSummary = aiResponse.summary || "Could not generate evaluation";
     } catch (aiError: any) {
-      console.error("Gemini Սխալ:", aiError);
-      aiSummary = "AI գնահատումը ձախողվեց: Խնդիր կապի կամ բանալիի հետ:";
+      console.error("Gemini Error:", aiError);
+      aiSummary = "AI evaluation failed. Please check your API key or try again.";
     }
 
     let resumeUrl: string | null = null;
@@ -154,9 +151,9 @@ ${form.jobDescription || "Ընդհանուր մասնագիտական հմտու
         }
       }
     });
-    return NextResponse.json({ message: "Հաջողությամբ պահպանվեց", candidateId: newCandidate.id }, { status: 201 });
+    return NextResponse.json({ message: "Candidate submitted successfully", candidateId: newCandidate.id }, { status: 201 });
   } catch (error) {
-    console.error("Թեկնածուի պահպանման սխալ:", error);
-    return NextResponse.json({ error: "Սխալ տվյալների պահպանման ժամանակ" }, { status: 500 });
+    console.error("Candidate save error:", error);
+    return NextResponse.json({ error: "Error saving candidate data" }, { status: 500 });
   }
 }

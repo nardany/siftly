@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import style from "./settings.module.css";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function SettingsPage() {
+  const { t, lang } = useLanguage();
   const [formData, setFormData] = useState({
     companyName: "",
     companyLogo: "",
@@ -41,53 +43,54 @@ export default function SettingsPage() {
     });
 
     if (res.ok) {
-      alert("Հաջողությամբ պահպանվեց");
+      alert(t.settingsSavedSuccess);
     } else {
-      alert("Սխալ տեղի ունեցավ");
+      alert(lang === "hy" ? "Սխալ տեղի ունեցավ" : "An error occurred");
     }
     setIsSaving(false);
   };
 
-  if (isLoading) return <div style={{ padding: "20px" }}>Բեռնվում է...</div>;
+  if (isLoading) return <div style={{ padding: "20px" }}>{lang === "hy" ? "Բեռնվում է..." : "Loading..."}</div>;
 
   return (
     <div className={style.container}>
-      <h1 className={style.title}>Կարգավորումներ</h1>
+      <h1 className={style.title}>{t.settings}</h1>
 
       <div className={style.card}>
-        <h2 className={style.cardTitle}>Ընկերության Պրոֆիլը</h2>
+        <h2 className={style.cardTitle}>{t.settingsTitle}</h2>
+        <p style={{ color: "#64748b", fontSize: "14px", marginBottom: "20px" }}>{t.settingsSubtitle}</p>
 
         <form onSubmit={handleSave}>
-          
           <div className={style.formGroup}>
-            <label className={style.label}>Ընկերության Անունը</label>
+            <label className={style.label}>{t.companyNameLabel}</label>
             <input
               type="text" name="companyName"
+              placeholder={t.companyNamePlaceholder}
               value={formData.companyName} onChange={handleChange}
               className={style.inputField} required
             />
           </div>
 
           <div className={style.formGroup}>
-            <label className={style.label}>Լոգո (URL հղում)</label>
+            <label className={style.label}>{t.companyLogoLabel}</label>
             <input
-              type="text" name="companyLogo" placeholder="https://..."
+              type="text" name="companyLogo" placeholder={t.companyLogoPlaceholder}
               value={formData.companyLogo} onChange={handleChange}
               className={style.inputField}
             />
           </div>
 
           <div className={style.formGroup}>
-            <label className={style.label}>Մեր մասին</label>
+            <label className={style.label}>{t.companyDescLabel}</label>
             <textarea
-              name="companyDescription" placeholder="Կարճ նկարագրություն..."
+              name="companyDescription" placeholder={t.companyDescPlaceholder}
               value={formData.companyDescription} onChange={handleChange}
               className={style.textareaField}
             />
           </div>
 
           <button type="submit" className={style.saveBtn} disabled={isSaving}>
-            {isSaving ? "Պահպանվում է..." : "Պահպանել փոփոխությունները"}
+            {isSaving ? t.savingSettings : t.saveSettingsBtn}
           </button>
         </form>
       </div>

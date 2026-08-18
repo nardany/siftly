@@ -103,7 +103,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json(updatedForm);
   } catch (error) {
-    console.error("PUT սխալ բազայում:", error);
+    console.error("PUT database error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

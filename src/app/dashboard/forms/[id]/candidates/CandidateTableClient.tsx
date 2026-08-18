@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import style from "./candidates.module.css";
 import OutreachModal from "./OutreachModal";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface CandidateItem {
   id: string;
@@ -29,6 +30,7 @@ export default function CandidateTableClient({
   inviteTemplate,
   rejectTemplate,
 }: CandidateTableClientProps) {
+  const { t, lang } = useLanguage();
   const [candidates, setCandidates] = useState<CandidateItem[]>(initialCandidates);
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateItem | null>(null);
   const [outreachType, setOutreachType] = useState<"INVITE" | "REJECT">("INVITE");
@@ -66,16 +68,15 @@ export default function CandidateTableClient({
   };
 
   const handleExportCSV = () => {
-    if (candidates.length === 0) return alert("Դեռ դիմորդներ չկան CSV արտահանելու համար");
+    if (candidates.length === 0) return alert(lang === "hy" ? "Դեռ դիմորդներ չկան CSV արտահանելու համար" : "No candidates available to export");
 
-    const headers = ["Անուն", "Ազգանուն", "Էլ. Փոստ", "AI Գնահատական", "Կարգավիճակ", "Ամսաթիվ", "AI Ամփոփում"];
+    const headers = [t.name, t.email, t.score, t.status, t.date, t.aiSummary];
     const rows = candidates.map((c) => [
-      `"${c.firstName || ""}"`,
-      `"${c.lastName || ""}"`,
+      `"${c.firstName || ""} ${c.lastName || ""}"`,
       `"${c.email || ""}"`,
       c.aiScore ?? 0,
       `"${c.status || "PENDING"}"`,
-      `"${new Date(c.createdAt).toLocaleDateString("hy-AM")}"`,
+      `"${new Date(c.createdAt).toLocaleDateString(lang === "hy" ? "hy-AM" : "en-US")}"`,
       `"${(c.aiSummary || "").replace(/"/g, '""')}"`,
     ]);
 
@@ -100,7 +101,7 @@ export default function CandidateTableClient({
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="🔍 Որոնել (Անուն, Էլ. փոստ)..."
+          placeholder={t.searchPlaceholder}
           style={{
             padding: "10px 16px",
             borderRadius: "8px",
@@ -128,7 +129,7 @@ export default function CandidateTableClient({
             gap: "6px",
           }}
         >
-          📥 Export CSV (Excel)
+          {t.exportCsv}
         </button>
       </div>
 
@@ -136,19 +137,19 @@ export default function CandidateTableClient({
         <table className={style.table}>
           <thead>
             <tr>
-              <th>Անուն Ազգանուն</th>
-              <th>Էլ. Փոստ</th>
-              <th>AI Գնահատական</th>
-              <th>Կարգավիճակ</th>
-              <th>Ամսաթիվ</th>
-              <th>Գործողություն</th>
+              <th>{t.name}</th>
+              <th>{t.email}</th>
+              <th>{t.score}</th>
+              <th>{t.status}</th>
+              <th>{t.date}</th>
+              <th>{t.action}</th>
             </tr>
           </thead>
           <tbody>
             {paginatedCandidates.length === 0 ? (
               <tr>
                 <td colSpan={6} className={style.emptyState}>
-                  Դեռ ոչ մի դիմորդ չկա այս հաստիքի համար:
+                  {lang === "hy" ? "Դեռ ոչ մի դիմորդ չկա այս հաստիքի համար:" : "No applicants found for this position."}
                 </td>
               </tr>
             ) : (
@@ -191,23 +192,23 @@ export default function CandidateTableClient({
                         }}
                       >
                         {currentStatus === "INVITED"
-                          ? "🟢 Հրավիրված"
+                          ? t.invited
                           : currentStatus === "REJECTED"
-                          ? "🔴 Մերժված"
-                          : "🟡 Սպասման մեջ"}
+                          ? t.rejected
+                          : t.pending}
                       </span>
                     </td>
                     <td className={style.textMuted}>
-                      {new Date(candidate.createdAt).toLocaleDateString("hy-AM")}
+                      {new Date(candidate.createdAt).toLocaleDateString(lang === "hy" ? "hy-AM" : "en-US")}
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                         <Link href={`/dashboard/candidates/${candidate.id}`} className={style.viewButton}>
-                          Ռեփորթ →
+                          {t.viewReport}
                         </Link>
                         <button
                           onClick={() => handleOpenModal(candidate, "INVITE")}
-                          title="Հրավիրել Հարցազրույցի"
+                          title="Invite"
                           style={{
                             padding: "6px 10px",
                             borderRadius: "6px",
@@ -219,11 +220,11 @@ export default function CandidateTableClient({
                             cursor: "pointer",
                           }}
                         >
-                          📩 Հրավիրել
+                          {t.invite}
                         </button>
                         <button
                           onClick={() => handleOpenModal(candidate, "REJECT")}
-                          title="Մերժել"
+                          title="Reject"
                           style={{
                             padding: "6px 10px",
                             borderRadius: "6px",
@@ -235,7 +236,7 @@ export default function CandidateTableClient({
                             cursor: "pointer",
                           }}
                         >
-                          ✉️ Մերժել
+                          {t.reject}
                         </button>
                       </div>
                     </td>
@@ -261,10 +262,10 @@ export default function CandidateTableClient({
               opacity: currentPage === 1 ? 0.5 : 1,
             }}
           >
-            ← Նախորդ
+            {t.prevPage}
           </button>
           <span style={{ fontSize: "14px", fontWeight: 600, color: "#475569" }}>
-            Էջ {currentPage} / {totalPages}
+            {t.page} {currentPage} / {totalPages}
           </span>
           <button
             disabled={currentPage === totalPages}
@@ -278,7 +279,7 @@ export default function CandidateTableClient({
               opacity: currentPage === totalPages ? 0.5 : 1,
             }}
           >
-            Հաջորդ →
+            {t.nextPage}
           </button>
         </div>
       )}
