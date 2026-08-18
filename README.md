@@ -1,4 +1,7 @@
 # Siftly — AI-Powered HR Candidate Screening Platform 🚀
+[![Product Hunt](https://img.shields.io/badge/Product%20Hunt-Live%20Launch-orange?style=for-the-badge&logo=producthunt)](https://www.producthunt.com/posts/siftly-2)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 
 **Siftly** is a modern, open-source HR screening platform that automates candidate evaluation using **Google Gemini AI**. It supports both native custom screening forms and 1-click **Google Forms integration** with real-time candidate scoring, anti-cheating detection, GitHub portfolio verification, 1-click Gmail outreach, and detailed analytical dashboards.
 
